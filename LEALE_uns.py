@@ -6,7 +6,6 @@ GOCO - Global Coastal Ocean Division
 import os
 import netCDF4 as nc
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 from pyresample import geometry, kd_tree
 from geopy.distance import geodesic
@@ -119,9 +118,8 @@ for file in nosfiles:
     uns = nc.Dataset(pathnamein + file)
     salinity = uns.variables['salinity'][:].data #[time,points,depth]
     time_data = uns.variables['time']
-    levels = uns.variables['level'][:].data
-    levels = np.round(levels[:].data,2)
-    depth = uns.variables['total_depth'][:].data
+    levels = np.round(uns.variables['level'][:].data,2)
+    depth = np.round(uns.variables['total_depth'][:].data, 2)
     latitude = uns.variables['latitude'][:].data
     longitude = uns.variables['longitude'][:].data
     del uns
@@ -160,7 +158,7 @@ for file in nosfiles:
                 'max_salinity_below_SWIthreshold': maxsal_belowthreshold[t],
                 'bottom_salinity_below_SWIthreshold': bottomsal_belowthreshold[t],
                 'distance_from_river_mouth': distance_from_rivermouth[ii],
-                'index_thalweg': index_thalweg[ii],               
+                'index_thalweg': index_thalweg[ii],
             })
             
         ii=ii+1
@@ -204,38 +202,59 @@ for tt in times:
         df_bottom = df_tmp1.copy()
     else:
         df_bottom = pd.concat([df_bottom, df_tmp1])       
-        
-     ## --- Highest salinity layer --- ##
+
+    ## --- Highest salinity layer --- ##
     #taking only the points at this time step that are with salinity higher the threshold (1PSU)
     df_tmp2 = df_tmp.loc[df_tmp['max_salinity_below_SWIthreshold'] == 1]
     if np.any(df_tmp2):
-        #df_tmp2['max_salinity_value'] = np.round(df_tmp2['max_salinity_value'], 2)
-        #df_tmp2 = df_tmp2.loc[df_tmp2['salinity_last_active_layer'] > 0]
-        #taking the main SWI front
-        #df_tmp2 = df_tmp2.loc[df_tmp2['distance_from_river_mouth'] == np.min(df_tmp2['distance_from_river_mouth'])][0:1]
         df_tmp2 = df_tmp2.loc[df_tmp2['distance_from_river_mouth'] == np.max(df_tmp2['distance_from_river_mouth'])][0:1]
-    
+
     else:
         print('df_tmp2 is empty! No elements with sal. > 1 were found along the thalweg path.')
         df_tmp2 = pd.DataFrame(columns=['latitude', 'longitude', 'time', 'last_active_layer_idx',
        'max_salinity_layer_idx', 'max_salinity_value',
        'salinity_last_active_layer', 'max_salinity_below_SWIthreshold',
        'bottom_salinity_below_SWIthreshold', 'distance_from_river_mouth',
-       'index_thalweg', 'distance_from_river_mouth_FV'])
+       'index_thalweg'])
         df_tmp2.loc[0] = np.nan
         df_tmp2['time'][0] = tt
         df_tmp2['distance_from_river_mouth'] = 0
-        
+
     if np.any(df_maxsallayer) == False:
         df_maxsallayer = df_tmp2.copy()
     else:
         df_maxsallayer = pd.concat([df_maxsallayer, df_tmp2])
 
-#df_bottom = df_bottom[['latitude','longitude','time','last_active_layer_idx','max_salinity_layer_idx','max_salinity_value','salinity_last_active_layer','max_salinity_below_SWIthreshold','bottom_salinity_below_SWIthreshold','distance_from_river_mouth','distance_from_river_mouth_FV','index_thalweg']]
-#df_maxsallayer = df_maxsallayer[['latitude','longitude','time','last_active_layer_idx','max_salinity_layer_idx','max_salinity_value','salinity_last_active_layer','max_salinity_below_SWIthreshold','bottom_salinity_below_SWIthreshold','distance_from_river_mouth','distance_from_river_mouth_FV','index_thalweg']]
 
+SWE = input('Are your estuary a salt wedge estuary? Please, answer with YES or NO:')
 # Saving file
-df_bottom = df_bottom[['latitude','longitude','time','salinity_last_active_layer','bottom_salinity_below_SWIthreshold','distance_from_river_mouth']]
-df_bottom = df_bottom.loc[df_bottom['bottom_salinity_below_SWIthreshold'] == 0]; del df_bottom['bottom_salinity_below_SWIthreshold']
-df_bottom.columns = ['Latitude','Longitude','Time','Salinity [PSU]','SWI length [m]']; df_bottom = df_bottom.reset_index(); del df_bottom['index']
-df_bottom.to_csv(pathnameout + 'SWIleght_from_LEALE.csv', index=False)
+if SWE == 'YES':
+    df_bottom = df_bottom[['latitude','longitude','time','salinity_last_active_layer','bottom_salinity_below_SWIthreshold','distance_from_river_mouth']]
+    df_bottom = df_bottom.loc[df_bottom['bottom_salinity_below_SWIthreshold'] == 0]; del df_bottom['bottom_salinity_below_SWIthreshold']
+    df_bottom.columns = ['Latitude','Longitude','Time','Salinity [PSU]','SWI length [m]']; df_bottom = df_bottom.reset_index(); del df_bottom['index']
+    df_bottom.to_csv(pathnameout + 'SWIleght_from_LEALE.csv', index=False)
+    df_toplot = df_bottom.copy()
+elif SWE == 'NO':
+    df_maxsallayer = df_maxsallayer[['latitude','longitude','time','max_salinity_value','max_salinity_below_SWIthreshold','distance_from_river_mouth','max_salinity_layer_idx']]
+    df_maxsallayer = df_maxsallayer.loc[df_maxsallayer['max_salinity_below_SWIthreshold'] == 0]; del df_maxsallayer['max_salinity_below_SWIthreshold']
+    df_maxsallayer.columns = ['Latitude','Longitude','Time','Salinity [PSU]','SWI length [m]','Index of max. salinity layer']; df_maxsallayer = df_maxsallayer.reset_index(); del df_maxsallayer['index']
+    df_maxsallayer.to_csv(pathnameout + 'SWIleght_from_LEALE.csv', index=False)
+    df_toplot = df_maxsallayer.copy()
+
+
+##########
+## PLOT ##
+##########
+PLOT = input('Do you want to plot LEALE results?  Please, answer with YES or NO:')
+
+if PLOT == 'YES':
+    fig = pl.figure(figsize=(12,10))
+    ax = fig.add_subplot(111)
+    ax.plot(pd.to_datetime(df_toplot['Time']), df_toplot['SWI length [m]'], '-', linewidth=3, color='blue')
+    ax.set_ylabel('Salt Wedge Intrusion Length [m]', fontsize=12)
+    ax.grid()
+    ax.legend(fontsize=14, ncols=3)
+    pl.tight_layout()
+    pl.savefig(pathnameout + 'SWIlength_from_LEALE.png', format='png', dpi=300, facecolor='w', edgecolor='w', 
+               orientation='portrait', transparent=False, bbox_inches=None, pad_inches=0.1)
+    pl.close()
