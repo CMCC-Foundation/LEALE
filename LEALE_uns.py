@@ -30,7 +30,7 @@ pathnameETICOfile = input('Complete filename of thalweg (from ETICO tool): ')
 files = os.listdir(pathnamein)
 nosfiles = []
 for file in files:
-    if file.endswith('.nc'):
+    if file.endswith('nos_cmpr.nc'):
         nosfiles.append(file)
 nosfiles.sort()
 
@@ -232,13 +232,13 @@ if SWE == 'YES':
     df_bottom = df_bottom[['latitude','longitude','time','salinity_last_active_layer','bottom_salinity_below_SWIthreshold','distance_from_river_mouth']]
     df_bottom = df_bottom.loc[df_bottom['bottom_salinity_below_SWIthreshold'] == 0]; del df_bottom['bottom_salinity_below_SWIthreshold']
     df_bottom.columns = ['Latitude','Longitude','Time','Salinity [PSU]','SWI length [m]']; df_bottom = df_bottom.reset_index(); del df_bottom['index']
-    df_bottom.to_csv(pathnameout + 'SWIleght_from_LEALE.csv', index=False)
+    df_bottom.to_csv(pathnameout + 'SWIlength_from_LEALE.csv', index=False)
     df_toplot = df_bottom.copy()
 elif SWE == 'NO':
     df_maxsallayer = df_maxsallayer[['latitude','longitude','time','max_salinity_value','max_salinity_below_SWIthreshold','distance_from_river_mouth','max_salinity_layer_idx']]
     df_maxsallayer = df_maxsallayer.loc[df_maxsallayer['max_salinity_below_SWIthreshold'] == 0]; del df_maxsallayer['max_salinity_below_SWIthreshold']
     df_maxsallayer.columns = ['Latitude','Longitude','Time','Salinity [PSU]','SWI length [m]','Index of max. salinity layer']; df_maxsallayer = df_maxsallayer.reset_index(); del df_maxsallayer['index']
-    df_maxsallayer.to_csv(pathnameout + 'SWIleght_from_LEALE.csv', index=False)
+    df_maxsallayer.to_csv(pathnameout + 'SWIlength_from_LEALE.csv', index=False)
     df_toplot = df_maxsallayer.copy()
 
 
@@ -248,6 +248,7 @@ elif SWE == 'NO':
 PLOT = input('Do you want to plot LEALE results?  Please, answer with YES or NO:')
 
 if PLOT == 'YES':
+    from matplotlib import pylab as pl
     fig = pl.figure(figsize=(12,10))
     ax = fig.add_subplot(111)
     ax.plot(pd.to_datetime(df_toplot['Time']), df_toplot['SWI length [m]'], '-', linewidth=3, color='blue')
