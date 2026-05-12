@@ -20,6 +20,9 @@ def haversine(lat1, lon1, lat2, lon2):
     a = np.sin(dphi/2)**2 + np.cos(phi1)*np.cos(phi2)*np.sin(dlambda/2)**2
     return 2 * R * np.arcsin(np.sqrt(a))
 
+
+radius = int(input('Enter the radius of influence (numeric value). Note that this parameter is used to search for the nearest neighbor and depends on the domain resolution: '))
+
 #############################
 ## FOLDERS + EXPERIMENT ID ##
 #############################
@@ -81,7 +84,7 @@ swath_def = geometry.SwathDefinition(lons=lon_uns, lats=lat_uns)
 
 # Get the nearest neighbors
 target_geo = geometry.SwathDefinition(lons=lon_etico, lats=lat_etico)
-_, _, indices, distances = kd_tree.get_neighbour_info(swath_def, target_geo, radius_of_influence=30, neighbours=1)
+_, _, indices, distances = kd_tree.get_neighbour_info(swath_def, target_geo, radius_of_influence=radius, neighbours=1)
 indices = np.array(indices, dtype=int)
 
 vec_sal = np.zeros((0,len(indices),0)) #[time,point,sal]
