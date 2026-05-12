@@ -100,7 +100,7 @@ distance_from_rivermouth = []; index_thalweg = []
 for d in range(0,len(lat_etico)):
     if d == 0:
         current_tmpdist = haversine(river_mouth_coords_etico[0], river_mouth_coords_etico[1], lat_uns[indices[d]], lon_uns[indices[d]])
-        previous_tmpdist = haversine(river_mouth_coords_etico[0], river_mouth_coords_etico[1], lat_uns[indices[d]], lon_uns[indices[d]])
+        previous_tmpdist = 0
     else:
         previous_tmpdist = distance_from_rivermouth[d-1]
         current_tmpdist = haversine(lat_uns[indices[d-1]], lon_uns[indices[d-1]], lat_uns[indices[d]], lon_uns[indices[d]])
