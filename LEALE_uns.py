@@ -208,7 +208,7 @@ for tt in times:
 
     ## --- Highest salinity layer --- ##
     #taking only the points at this time step that are with salinity higher the threshold (1PSU)
-    df_tmp2 = df_tmp.loc[df_tmp['max_salinity_below_SWIthreshold'] == 1]
+    df_tmp2 = df_tmp.loc[df_tmp['max_salinity_below_SWIthreshold'] == 0]
     if np.any(df_tmp2):
         df_tmp2 = df_tmp2.loc[df_tmp2['distance_from_river_mouth'] == np.max(df_tmp2['distance_from_river_mouth'])][0:1]
 
