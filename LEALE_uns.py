@@ -3,7 +3,9 @@ Created by Júlia Kaiser & Fabio Viola - Jul/2025
 CMCC Foundation - Euro-Mediterranean Center on Climate Change
 GOCO - Global Coastal Ocean Division
 '''
+
 import os
+import sys
 import netCDF4 as nc
 import numpy as np
 import pandas as pd
@@ -143,7 +145,7 @@ for file in nosfiles:
         salinity_last_active_layer = salinity_point[np.arange(salinity_point.shape[0]), last_active_layer]  #value at last active layer
 
         # Calculate whether salinity is below the threshold
-        maxsal_belowthreshold = (max_salinity_value < SWI_threshold).astype(int)
+        maxsal_belowthreshold = (max_salinity_value < SWI_threshold).astype(int)  #0 = sal. > threshold; 1 = sal. < threshold
         bottomsal_belowthreshold = (salinity_last_active_layer < SWI_threshold).astype(int) #0 = sal. > threshold; 1 = sal. < threshold
         
         
@@ -194,7 +196,7 @@ for tt in times:
         df_tmp1 = df_tmp1.loc[df_tmp1['distance_from_river_mouth'] == np.max(df_tmp1['distance_from_river_mouth'])][0:1]
     
     else:
-        print('df_tmp1 is empty! No elements with sal. > 1 were found along the thalweg path.')
+        print('df_tmp1 is empty! No elements with sal. > ' + str(SWI_threshold) + ' were found along the thalweg path.')
         df_tmp1 = pd.DataFrame(columns=['latitude', 'longitude', 'time', 'last_active_layer_idx',
                                         'max_salinity_layer_idx', 'max_salinity_value',
                                         'salinity_last_active_layer', 'max_salinity_below_SWIthreshold',
@@ -216,7 +218,7 @@ for tt in times:
         df_tmp2 = df_tmp2.loc[df_tmp2['distance_from_river_mouth'] == np.max(df_tmp2['distance_from_river_mouth'])][0:1]
 
     else:
-        print('df_tmp2 is empty! No elements with sal. > 1 were found along the thalweg path.')
+        print('df_tmp2 is empty! No elements with sal. > ' + str(SWI_threshold) + ' were found along the thalweg path.')
         df_tmp2 = pd.DataFrame(columns=['latitude', 'longitude', 'time', 'last_active_layer_idx',
        'max_salinity_layer_idx', 'max_salinity_value',
        'salinity_last_active_layer', 'max_salinity_below_SWIthreshold',
