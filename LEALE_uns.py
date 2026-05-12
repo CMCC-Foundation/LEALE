@@ -21,15 +21,22 @@ def haversine(lat1, lon1, lat2, lon2):
     return 2 * R * np.arcsin(np.sqrt(a))
 
 
-radius = int(input('Enter the radius of influence (numeric value). Note that this parameter is used to search for the nearest neighbor and depends on the domain resolution: '))
-
-#############################
-## FOLDERS + EXPERIMENT ID ##
-#############################
+##################
+## USER INPUTS ##
+##################
 pathnamein = input('Pathname of unstructured input .nc files: ')
 pathnameout = input('Pathname to save LEALE results: ')
 pathnameETICOfile = input('Complete filename of thalweg (from ETICO tool): ')
 
+SWI_threshold = float(input('Enter with salinity threshold to be considered: ')) #SWI_threshold = 1.0
+radius = int(input('Enter the radius of influence (numeric value). Note that this parameter is used to search for the nearest neighbor and depends on the domain resolution: ')) #radius = 30
+SWE = input('Are your estuary a salt wedge estuary? Please, answer with YES or NO:').upper().strip()
+PLOT = input('Do you want to plot LEALE results?  Please, answer with YES or NO:').upper().strip()
+
+
+########################
+## OPPENING VARIABLES ##
+########################
 files = os.listdir(pathnamein)
 nosfiles = []
 for file in files:
@@ -37,17 +44,12 @@ for file in files:
         nosfiles.append(file)
 nosfiles.sort()
 
+if np.any(nosfiles) == False:
+    raise SystemExit('Exiting because no .nc files were found in the specified folder. Please, check the pathname and try again.')
 
-########################
-## OPPENING VARIABLES ##
-########################
-vec_time = [];
-vec_sal = np.array([]);
+vec_time = []
+vec_sal = np.array([])
 vec_lat = []; vec_lon = []; vec_distance = []
-
-## Choosing the salinity threshold to consider as SWI
-SWI_threshold = float(input('Enter with salinity threshold to be considered: '))
-#SWI_threshold = 1.0
 
 
 ############################
@@ -172,6 +174,7 @@ for file in nosfiles:
             print(int(np.where(indices == p)[0][0]), ' --- ', len(indices))
 df = pd.DataFrame(results)
 
+
 ######################################################
 ## CLEANING THE DATAFRAME AND CHOOSING INFO TO SAVE ##
 ######################################################
@@ -229,7 +232,6 @@ for tt in times:
         df_maxsallayer = pd.concat([df_maxsallayer, df_tmp2])
 
 
-SWE = input('Are your estuary a salt wedge estuary? Please, answer with YES or NO:')
 # Saving file
 if SWE == 'YES':
     df_bottom = df_bottom[['latitude','longitude','time','salinity_last_active_layer','bottom_salinity_below_SWIthreshold','distance_from_river_mouth']]
@@ -248,7 +250,6 @@ elif SWE == 'NO':
 ##########
 ## PLOT ##
 ##########
-PLOT = input('Do you want to plot LEALE results?  Please, answer with YES or NO:')
 
 if PLOT == 'YES':
     from matplotlib import pylab as pl
